@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Masjid Zakariya Salah Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root{
+  --bg: #F7F2E7;
+  --ink: #1B4B43;
+  --ink-deep: #123330;
+  --gold: #C99A3E;
+  --gold-soft: #EAD8A8;
+  --present: #3F7A5D;
+  --muted: #C9BFA9;
+  --danger: #8B3A3A;
+  --card: #FFFFFF;
+  --font-display: 'Amiri', Georgia, serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background: var(--bg);
+  font-family: var(--font-body);
+  color: var(--ink-deep);
+  min-height:100vh;
+  padding-bottom: 84px;
+  -webkit-tap-highlight-color: transparent;
+}
+button{font-family:inherit; cursor:pointer;}
+input{font-family:inherit;}
+
+/* ---------- Header ---------- */
+.app-header{
+  background: var(--ink);
+  color: var(--bg);
+  padding: 18px 18px 22px;
+  position: relative;
+  overflow: hidden;
+}
+.app-header::after{
+  content:"";
+  position:absolute;
+  right:-30px; top:-30px;
+  width:140px; height:140px;
+  background: radial-gradient(var(--gold-soft) 0%, transparent 70%);
+  opacity:0.15;
+}
+.header-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  position:relative; z-index:1;
+}
+.brand{ display:flex; align-items:center; gap:10px; min-width:0; }
+.star-mark{ width:24px; height:24px; flex-shrink:0; }
+.brand h1{
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height:1.15;
+  font-weight:700;
+  margin:0;
+  letter-spacing:0.2px;
+  overflow-wrap:anywhere;
+}
+.brand p{
+  margin:2px 0 0;
+  font-size:11.5px;
+  color: var(--gold-soft);
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+}
+.lock-pill{
+  display:flex; align-items:center; gap:6px; flex-shrink:0;
+  background: rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.18);
+  color:var(--bg);
+  padding:7px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+  white-space:nowrap;
+}
+.lock-pill.unlocked{ background: rgba(201,154,62,0.25); border-color: var(--gold); }
+
+/* ---------- Tabs / content ---------- */
+.container{ max-width:560px; margin:0 auto; padding: 16px 16px 8px; }
+
+.date-nav{
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--card); border-radius:14px; padding:10px 8px;
+  margin-bottom:14px; box-shadow: 0 1px 3px rgba(18,51,48,0.08);
+}
+.date-nav button{
+  background:none; border:none; color:var(--ink);
+  font-size:18px; padding:6px 12px; border-radius:8px;
+}
+.date-nav button:active{ background: var(--bg); }
+.date-label{ text-align:center; flex:1; }
+.date-label .day{ font-weight:700; font-size:15px; }
+.date-label .today-tag{ font-size:11px; color:var(--present); font-weight:600; }
+.date-label .jump{ font-size:11px; color:var(--gold); font-weight:600; text-decoration:underline; }
+
+.prayer-tabs{
+  display:flex; gap:6px; overflow-x:auto; margin-bottom:14px;
+  padding-bottom:2px;
+}
+.prayer-tab{
+  flex:1; min-width:64px;
+  background:var(--card); border:2px solid transparent;
+  border-radius:12px; padding:9px 4px; text-align:center;
+  font-size:13px; font-weight:700; color:var(--ink-deep);
+  box-shadow: 0 1px 2px rgba(18,51,48,0.06);
+}
+.prayer-tab .pts{ display:block; font-size:10.5px; font-weight:600; color:var(--gold); margin-top:2px;}
+.prayer-tab.active{ border-color: var(--ink); background: var(--ink); color:var(--bg); }
+.prayer-tab.active .pts{ color: var(--gold-soft); }
+
+.kid-toolbar{ display:flex; gap:8px; margin-bottom:14px; }
+.kid-toolbar .search-input{
+  flex:1; padding:10px 14px; border:1.5px solid var(--muted); border-radius:999px;
+  font-size:14px; background:var(--card);
+}
+.kid-toolbar .add-kid-btn{
+  background:var(--ink); color:var(--bg); border:none; border-radius:999px;
+  padding:0 16px; font-size:14px; font-weight:700; white-space:nowrap;
+}
+.no-match{ text-align:center; padding:24px 10px; color:#8a8577; font-size:13.5px; }
+
+.pin-subhead{ font-size:13px; font-weight:700; color:var(--ink); margin:14px 0 6px; }
+.pin-subhead:first-of-type{ margin-top:0; }
+
+.kid-list{ display:flex; flex-direction:column; gap:10px; }
+.kid-card{
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--card); border-radius:14px; padding:12px 14px;
+  box-shadow: 0 1px 3px rgba(18,51,48,0.07);
+}
+.kid-name{ font-size:15.5px; font-weight:600; }
+.kid-sub{ font-size:11.5px; color:#8a8577; margin-top:1px; }
+.star-btn{
+  background:none; border:none; padding:4px; width:44px; height:44px;
+  display:flex; align-items:center; justify-content:center;
+}
+.star-btn svg{ width:30px; height:30px; }
+
+.empty-state{
+  text-align:center; padding: 40px 20px; color:#8a8577;
+}
+.empty-state h3{ font-family: var(--font-display); color:var(--ink); font-size:19px; margin-bottom:6px;}
+
+/* ---------- Leaderboard ---------- */
+.lb-row{
+  background:var(--card); border-radius:14px; padding:12px 14px; margin-bottom:10px;
+  box-shadow: 0 1px 3px rgba(18,51,48,0.07);
+}
+.lb-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;}
+.lb-rank{ font-family:var(--font-display); font-size:15px; color:var(--gold); font-weight:700; width:22px;}
+.lb-name{ font-weight:700; font-size:15px; flex:1; margin-left:6px;}
+.lb-pts{ font-weight:800; font-size:15px; color:var(--ink);}
+.lb-bar-track{ height:8px; background:var(--bg); border-radius:99px; overflow:hidden;}
+.lb-bar-fill{ height:100%; background: linear-gradient(90deg, var(--gold), var(--ink)); border-radius:99px; }
+.lb-refresh{
+  display:block; margin: 0 auto 16px; background:var(--ink); color:var(--bg);
+  border:none; border-radius:999px; padding:9px 18px; font-size:13px; font-weight:600;
+}
+
+/* ---------- Settings ---------- */
+.settings-section{
+  background:var(--card); border-radius:14px; padding:16px; margin-bottom:14px;
+  box-shadow: 0 1px 3px rgba(18,51,48,0.07);
+}
+.settings-section h3{
+  font-family:var(--font-display); font-size:17px; margin:0 0 12px; color:var(--ink);
+}
+.field-row{ display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--bg); }
+.field-row:last-child{ border-bottom:none; }
+.field-row label{ font-size:14px; font-weight:600; }
+.field-row input[type=number]{
+  width:60px; text-align:center; padding:6px; border:1.5px solid var(--muted); border-radius:8px; font-size:14px;
+}
+.text-input{
+  width:100%; padding:10px 12px; border:1.5px solid var(--muted); border-radius:10px; font-size:14px; margin-bottom:8px;
+}
+.btn{
+  border:none; border-radius:10px; padding:10px 16px; font-size:14px; font-weight:700;
+}
+.btn-primary{ background:var(--ink); color:var(--bg); }
+.btn-danger{ background:none; color:var(--danger); font-weight:600; }
+.btn-full{ width:100%; }
+.kid-manage-row{ display:flex; align-items:center; justify-content:space-between; padding:7px 0; }
+.help-text{ font-size:12.5px; color:#8a8577; line-height:1.5; margin-top:4px; }
+.pin-row{ display:flex; gap:8px; }
+.pin-row .text-input{ margin-bottom:0; }
+
+/* ---------- Bottom nav ---------- */
+.bottom-nav{
+  position:fixed; bottom:0; left:0; right:0;
+  background:var(--card); border-top:1px solid rgba(18,51,48,0.08);
+  display:flex; padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  z-index:20;
+}
+.nav-btn{
+  flex:1; background:none; border:none; padding:8px 4px;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  color:#a39d8b; font-size:11px; font-weight:600;
+}
+.nav-btn svg{ width:22px; height:22px; }
+.nav-btn.active{ color: var(--ink); }
+.nav-btn.active svg{ color: var(--gold); }
+
+/* ---------- Modal ---------- */
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(18,51,48,0.55);
+  display:flex; align-items:center; justify-content:center; padding:24px; z-index:50;
+}
+.modal{
+  background:var(--card); border-radius:16px; padding:22px; width:100%; max-width:340px;
+  text-align:center;
+}
+.modal h3{ font-family:var(--font-display); color:var(--ink); margin:0 0 6px; font-size:19px;}
+.modal p{ font-size:13px; color:#8a8577; margin:0 0 16px; }
+.pin-input{
+  width:100%; text-align:center; font-size:22px; letter-spacing:5px; padding:12px;
+  border:1.5px solid var(--muted); border-radius:10px; margin-bottom:12px;
+}
+.modal-actions{ display:flex; gap:8px; }
+.modal-actions button{ flex:1; }
+.modal-error{ color:var(--danger); font-size:12.5px; margin-bottom:10px; min-height:16px; }
+
+.toast{
+  position:fixed; bottom:92px; left:50%; transform:translateX(-50%);
+  background: var(--ink-deep); color:var(--bg); padding:10px 18px; border-radius:999px;
+  font-size:13px; z-index:60; box-shadow:0 4px 14px rgba(0,0,0,0.2);
+  opacity:0; pointer-events:none; transition:opacity 0.25s ease;
+}
+.toast.show{ opacity:1; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="header-row">
+    <div class="brand">
+      <svg class="star-mark" viewBox="0 0 100 100" fill="var(--gold)"><path d="M50 0 L58 38 L92 22 L64 48 L100 50 L64 52 L92 78 L58 62 L50 100 L42 62 L8 78 L36 52 L0 50 L36 48 L8 22 L42 38 Z"/></svg>
+      <div>
+        <h1>Masjid Zakariya Salah Tracker</h1>
+        <p>Kids' Attendance &amp; Points</p>
+      </div>
+    </div>
+    <button class="lock-pill" id="lockPill" onclick="onLockPillClick()"></button>
+  </div>
+</div>
+
+<div class="container" id="mainContainer"></div>
+
+<div class="bottom-nav">
+  <button class="nav-btn" data-tab="today" onclick="setTab('today')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+    Today
+  </button>
+  <button class="nav-btn" data-tab="leaderboard" onclick="setTab('leaderboard')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4a2 2 0 0 0 2 4M17 6h3a2 2 0 0 1-2 4"/></svg>
+    Leaderboard
+  </button>
+  <button class="nav-btn" data-tab="settings" onclick="setTab('settings')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9c.2.6.7 1.1 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+    Settings
+  </button>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ============================= STATE ============================= */
+const state = {
+  kids: [],              // [{id, name}]
+  points: {fajr:3, dhur:1, juma:3, asr:1, maghreb:2, isha:2},
+  pins: { owner: null, imam: null },  // loaded lazily, 6-digit codes
+  unlocked: false,
+  unlockedRole: null,    // 'owner' | 'imam'
+  activeTab: 'today',
+  activePrayer: null,
+  currentDate: todayStr(),
+  kidSearch: '',
+  attendance: {},        // { 'YYYY-MM-DD': {fajr:[ids], ...} }
+  loadedDates: new Set(),
+  leaderboardTotals: null // computed on demand
+};
+
+const DEFAULT_OWNER_PIN = '123456';
+const DEFAULT_IMAM_PIN = '654321';
+
+const PRAYER_ORDER = ['fajr','dhur','asr','maghreb','isha'];
+const ALL_PRAYERS = ['fajr','dhur','juma','asr','maghreb','isha'];
+const PRAYER_LABEL = {fajr:'Fajr', dhur:'Dhuhr', juma:'Juma', asr:'Asr', maghreb:'Maghrib', isha:'Isha'};
+
+function isFriday(dateStr){
+  const [y,m,d] = dateStr.split('-').map(Number);
+  return new Date(y, m-1, d).getDay() === 5;
+}
+
+// The set of prayer tabs to show for a given date — Juma replaces Dhuhr on Fridays.
+function getPrayersForDate(dateStr){
+  return isFriday(dateStr)
+    ? ['fajr','juma','asr','maghreb','isha']
+    : PRAYER_ORDER;
+}
+
+/* ============================= UTIL ============================= */
+function $(id){ return document.getElementById(id); }
+function uid(){ return 'k_' + Math.random().toString(36).slice(2,10); }
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function addDays(dateStr, n){
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  dt.setDate(dt.getDate()+n);
+  return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+}
+function formatNice(dateStr){
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  return dt.toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+}
+
+// Rough, generic time-of-day bands (not exact local prayer times) used only to
+// pick a sensible default tab — the imam can always tap a different prayer.
+function getCurrentPrayer(){
+  const now = new Date();
+  const hour = now.getHours();
+  if(hour >= 4 && hour < 8) return 'fajr';
+  if(hour >= 8 && hour < 15) return now.getDay() === 5 ? 'juma' : 'dhur';
+  if(hour >= 15 && hour < 18) return 'asr';
+  if(hour >= 18 && hour < 20) return 'maghreb';
+  return 'isha'; // 20:00–23:59 and 00:00–03:59
+}
+function showToast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=> t.classList.remove('show'), 2200);
+}
+
+/* ============================= STORAGE (Google Apps Script backend) =============================
+   This app no longer runs inside Claude — it's a plain static page, hosted anywhere,
+   with no account wall for viewers. Data is stored in a Google Sheet via a small
+   Apps Script Web App that acts as a free key-value API. See SETUP.md for how to
+   deploy your own and paste the URL below.
+*/
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzA6U3RMw4RupureuaEEb0RYudaBmrBj7JVcp8ATtYYRFmfArrcNNxF-LsD32ktJQTtCA/exec';
+
+function backendConfigured(){
+  return APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf('https://script.google.com') === 0;
+}
+
+async function sGet(key){
+  try{
+    const res = await fetch(APPS_SCRIPT_URL + '?action=get&key=' + encodeURIComponent(key));
+    const data = await res.json();
+    return (data && data.value !== undefined && data.value !== null && data.value !== '') ? data.value : null;
+  }catch(e){ return null; }
+}
+async function sSet(key, value){
+  try{
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids a CORS preflight
+      body: JSON.stringify({ action: 'set', key, value })
+    });
+    const data = await res.json();
+    return !!(data && data.success);
+  }catch(e){ return false; }
+}
+async function sList(prefix){
+  try{
+    const res = await fetch(APPS_SCRIPT_URL + '?action=list&prefix=' + encodeURIComponent(prefix));
+    const data = await res.json();
+    return (data && data.keys) ? data.keys : [];
+  }catch(e){ return []; }
+}
+
+async function saveWithRetry(key, value, label){
+  let ok = await sSet(key, value);
+  if(!ok){
+    ok = await sSet(key, value); // one retry
+  }
+  if(!ok){
+    showToast("Couldn't save " + (label || 'change') + " — check connection and try again");
+  }
+  return ok;
+}
+
+/* ============================= LOAD ============================= */
+async function loadAll(){
+  if(!backendConfigured()){
+    renderSetupNeeded();
+    return;
+  }
+
+  const kidsRaw = await sGet('kids-list');
+  state.kids = kidsRaw ? JSON.parse(kidsRaw) : [];
+  let namesFixed = false;
+  state.kids = state.kids.map(k => {
+    const fixed = toStartCase(k.name);
+    if(fixed !== k.name) namesFixed = true;
+    return { ...k, name: fixed };
+  });
+  if(namesFixed){
+    saveWithRetry('kids-list', JSON.stringify(state.kids), 'kids list');
+  }
+
+  const ptsRaw = await sGet('points-config');
+  if(ptsRaw) state.points = Object.assign({}, state.points, JSON.parse(ptsRaw));
+
+  const ownerPinRaw = await sGet('pin-owner');
+  const imamPinRaw = await sGet('pin-imam');
+  state.pins.owner = ownerPinRaw || DEFAULT_OWNER_PIN;
+  state.pins.imam = imamPinRaw || DEFAULT_IMAM_PIN;
+
+  state.activePrayer = getCurrentPrayer();
+
+  await loadAttendanceFor(state.currentDate);
+  render();
+}
+
+function renderSetupNeeded(){
+  document.getElementById('mainContainer').innerHTML = `
+    <div class="empty-state">
+      <h3>One-time setup needed</h3>
+      <p>This copy of the app isn't connected to a data backend yet.
+      Open <code>index.html</code>, find the line that says
+      <code>PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE</code>, and replace it with your
+      deployed Apps Script Web App URL. See SETUP.md for step-by-step instructions.</p>
+    </div>`;
+}
+
+async function loadAttendanceFor(dateStr){
+  if(state.loadedDates.has(dateStr)) return;
+  const raw = await sGet('attendance:' + dateStr);
+  state.attendance[dateStr] = raw ? JSON.parse(raw) : {fajr:[],dhur:[],juma:[],asr:[],maghreb:[],isha:[]};
+  state.loadedDates.add(dateStr);
+}
+
+function getDayData(dateStr){
+  if(!state.attendance[dateStr]){
+    state.attendance[dateStr] = {fajr:[],dhur:[],juma:[],asr:[],maghreb:[],isha:[]};
+  }
+  if(!state.attendance[dateStr].juma){
+    state.attendance[dateStr].juma = [];
+  }
+  return state.attendance[dateStr];
+}
+
+/* ============================= AUTH ============================= */
+function requireUnlock(afterUnlockFn){
+  if(state.unlocked){ afterUnlockFn(); return; }
+  openPinModal(afterUnlockFn);
+}
+
+function openPinModal(onSuccess){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.innerHTML = `
+    <div class="modal">
+      <h3>Enter PIN</h3>
+      <p>Enter your 6-digit PIN to unlock editing.</p>
+      <div class="modal-error" id="pinError"></div>
+      <input class="pin-input" id="pinInput" type="tel" inputmode="numeric" maxlength="6" autofocus>
+      <div class="modal-actions">
+        <button class="btn btn-danger" onclick="this.closest('.modal-backdrop').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitPin()">Unlock</button>
+      </div>
+    </div>`;
+  document.body.appendChild(backdrop);
+  const input = $('pinInput');
+  input.focus();
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') submitPin(); });
+
+  window.submitPin = function(){
+    const val = $('pinInput').value.trim();
+    let role = null;
+    if(val === state.pins.owner) role = 'owner';
+    else if(val === state.pins.imam) role = 'imam';
+
+    if(role){
+      state.unlocked = true;
+      state.unlockedRole = role;
+      backdrop.remove();
+      renderLockPill();
+      if(onSuccess) onSuccess();
+      showToast('Unlocked');
+    } else {
+      $('pinError').textContent = 'Incorrect PIN. Try again.';
+      $('pinInput').value='';
+      $('pinInput').focus();
+    }
+  };
+}
+
+function onLockPillClick(){
+  if(state.unlocked){
+    state.unlocked = false;
+    state.unlockedRole = null;
+    renderLockPill();
+    render();
+    showToast('App locked');
+  } else {
+    openPinModal(()=> render());
+  }
+}
+
+function renderLockPill(){
+  const pill = $('lockPill');
+  pill.className = 'lock-pill' + (state.unlocked ? ' unlocked' : '');
+  pill.innerHTML = state.unlocked
+    ? ('🔓 ' + (state.unlockedRole === 'imam' ? 'Imam' : 'You'))
+    : '🔒 Locked';
+}
+
+/* ============================= TABS ============================= */
+function setTab(tab){
+  state.activeTab = tab;
+  render();
+}
+
+function render(){
+  renderLockPill();
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab === state.activeTab);
+  });
+  if(state.activeTab === 'today') renderToday();
+  else if(state.activeTab === 'leaderboard') renderLeaderboard();
+  else renderSettings();
+}
+
+/* ============================= TODAY TAB ============================= */
+function renderToday(){
+  const c = $('mainContainer');
+  const isToday = state.currentDate === todayStr();
+  const dayData = getDayData(state.currentDate);
+  const dayPrayers = getPrayersForDate(state.currentDate);
+
+  if(!dayPrayers.includes(state.activePrayer)){
+    state.activePrayer = state.activePrayer === 'dhur' ? 'juma'
+      : state.activePrayer === 'juma' ? 'dhur'
+      : dayPrayers[0];
+  }
+
+  let html = `
+    <div class="kid-toolbar">
+      <input class="search-input" id="kidSearchInput" placeholder="Search kids…" value="${escapeAttr(state.kidSearch)}" oninput="onKidSearch(this.value)">
+      <button class="add-kid-btn" onclick="requireUnlock(openAddKidModal)">+ Add</button>
+    </div>
+    <div class="date-nav">
+      <button onclick="navDate(-1)">‹</button>
+      <div class="date-label">
+        <div class="day">${formatNice(state.currentDate)}</div>
+        ${isToday ? '<div class="today-tag">Today</div>' : '<div class="jump" onclick="jumpToday()">Jump to today</div>'}
+      </div>
+      <button onclick="navDate(1)" ${isToday ? 'style="visibility:hidden"' : ''}>›</button>
+    </div>
+    <div class="prayer-tabs">
+      ${dayPrayers.map(p => `
+        <button class="prayer-tab ${state.activePrayer===p?'active':''}" onclick="setPrayer('${p}')">
+          ${PRAYER_LABEL[p]}<span class="pts">${state.points[p]} pt${state.points[p]==1?'':'s'}</span>
+        </button>`).join('')}
+    </div>
+  `;
+
+  if(state.kids.length === 0){
+    html += `<div class="empty-state"><h3>No kids added yet</h3><p>Tap "+ Add" above to add the kids you're tracking.</p></div>`;
+  } else {
+    const query = state.kidSearch.trim().toLowerCase();
+    const visibleKids = query
+      ? state.kids.filter(k => k.name.toLowerCase().includes(query))
+      : state.kids;
+
+    if(visibleKids.length === 0){
+      html += `<div class="no-match">No kids match "${escapeHtml(state.kidSearch)}"</div>`;
+    } else {
+      const present = new Set(dayData[state.activePrayer] || []);
+      html += `<div class="kid-list">` + visibleKids.map(k => `
+        <div class="kid-card">
+          <div>
+            <div class="kid-name">${escapeHtml(k.name)}</div>
+            <div class="kid-sub">${present.has(k.id) ? 'Present · +' + state.points[state.activePrayer] + ' pt' : 'Not marked yet'}</div>
+          </div>
+          <button class="star-btn" onclick="toggleStar('${k.id}')">
+            ${present.has(k.id) ? starSvg(true) : starSvg(false)}
+          </button>
+        </div>`).join('') + `</div>`;
+    }
+  }
+
+  c.innerHTML = html;
+  // restore focus/cursor position if the search box was being typed in
+  const si = $('kidSearchInput');
+  if(si && state.kidSearchFocused){
+    si.focus();
+    const pos = si.value.length;
+    si.setSelectionRange(pos, pos);
+  }
+}
+
+function onKidSearch(val){
+  state.kidSearch = val;
+  state.kidSearchFocused = true;
+  renderToday();
+}
+
+function escapeAttr(s){
+  return (s || '').replace(/"/g, '&quot;');
+}
+
+function starSvg(filled){
+  return `<svg viewBox="0 0 24 24" fill="${filled ? 'var(--gold)' : 'none'}" stroke="${filled ? 'var(--gold)' : 'var(--muted)'}" stroke-width="1.6">
+    <path d="M12 2 L14.5 9 L22 9.3 L16 14 L18 21.5 L12 17.3 L6 21.5 L8 14 L2 9.3 L9.5 9 Z"/>
+  </svg>`;
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function setPrayer(p){
+  state.activePrayer = p;
+  renderToday();
+}
+
+async function navDate(delta){
+  const newDate = addDays(state.currentDate, delta);
+  if(newDate > todayStr()) return;
+  state.currentDate = newDate;
+  await loadAttendanceFor(newDate);
+  renderToday();
+}
+function jumpToday(){
+  state.currentDate = todayStr();
+  renderToday();
+}
+
+function toggleStar(kidId){
+  requireUnlock(async ()=>{
+    const dayData = getDayData(state.currentDate);
+    const arr = dayData[state.activePrayer] || (dayData[state.activePrayer] = []);
+    const idx = arr.indexOf(kidId);
+    if(idx >= 0) arr.splice(idx,1); else arr.push(kidId);
+    renderToday();
+    await saveWithRetry('attendance:' + state.currentDate, JSON.stringify(dayData), 'attendance');
+    state.leaderboardTotals = null; // invalidate cache
+  });
+}
+
+/* ============================= LEADERBOARD TAB ============================= */
+async function renderLeaderboard(force){
+  const c = $('mainContainer');
+  if(!state.leaderboardTotals || force){
+    c.innerHTML = `<div class="empty-state"><h3>Loading leaderboard…</h3></div>`;
+    state.leaderboardTotals = await computeLeaderboard();
+  }
+  const totals = state.leaderboardTotals;
+
+  if(state.kids.length === 0){
+    c.innerHTML = `<div class="empty-state"><h3>No kids added yet</h3><p>Add kids from the Today tab to see the leaderboard.</p></div>`;
+    return;
+  }
+
+  const rows = state.kids.map(k => ({ kid:k, pts: totals[k.id] || 0 }))
+    .sort((a,b)=> b.pts - a.pts);
+  const maxPts = Math.max(1, ...rows.map(r=>r.pts));
+
+  c.innerHTML = `
+    <button class="lb-refresh" onclick="renderLeaderboard(true)">Refresh totals</button>
+    ${rows.map((r,i) => `
+      <div class="lb-row">
+        <div class="lb-top">
+          <span class="lb-rank">#${i+1}</span>
+          <span class="lb-name">${escapeHtml(r.kid.name)}</span>
+          <span class="lb-pts">${r.pts} pt${r.pts==1?'':'s'}</span>
+        </div>
+        <div class="lb-bar-track"><div class="lb-bar-fill" style="width:${(r.pts/maxPts*100).toFixed(0)}%"></div></div>
+      </div>`).join('')}
+  `;
+}
+
+async function computeLeaderboard(){
+  const keys = await sList('attendance:');
+  const totals = {};
+  for(const key of keys){
+    const raw = await sGet(key);
+    if(!raw) continue;
+    const day = JSON.parse(raw);
+    for(const prayer of ALL_PRAYERS){
+      const list = day[prayer] || [];
+      const pts = state.points[prayer] || 0;
+      for(const kidId of list){
+        totals[kidId] = (totals[kidId] || 0) + pts;
+      }
+    }
+  }
+  return totals;
+}
+
+/* ============================= SETTINGS TAB ============================= */
+function renderSettings(){
+  const c = $('mainContainer');
+
+  if(!state.unlocked){
+    c.innerHTML = `
+      <div class="empty-state">
+        <h3>Settings are locked</h3>
+        <p>Unlock the app to remove kids, adjust points, and manage PINs.</p>
+        <button class="btn btn-primary" style="margin-top:14px" onclick="requireUnlock(renderSettings)">Unlock now</button>
+      </div>`;
+    return;
+  }
+
+  const isOwner = state.unlockedRole === 'owner';
+
+  const ownerPinBlock = isOwner ? `
+      <div class="pin-subhead">Your PIN</div>
+      <div class="pin-row">
+        <input class="text-input" id="ownerPin1" type="tel" inputmode="numeric" maxlength="6" placeholder="New PIN">
+        <input class="text-input" id="ownerPin2" type="tel" inputmode="numeric" maxlength="6" placeholder="Confirm PIN">
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="changePin('owner')">Update your PIN</button>
+  ` : '';
+
+  const imamPinBlock = `
+      <div class="pin-subhead">${isOwner ? "Imam's PIN" : 'Your PIN'}</div>
+      <div class="pin-row">
+        <input class="text-input" id="imamPin1" type="tel" inputmode="numeric" maxlength="6" placeholder="New PIN">
+        <input class="text-input" id="imamPin2" type="tel" inputmode="numeric" maxlength="6" placeholder="Confirm PIN">
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="changePin('imam')">${isOwner ? "Update imam's PIN" : 'Update your PIN'}</button>
+  `;
+
+  c.innerHTML = `
+    <div class="settings-section">
+      <h3>Points per prayer</h3>
+      ${ALL_PRAYERS.map(p => `
+        <div class="field-row">
+          <label>${PRAYER_LABEL[p]}</label>
+          <input type="number" min="0" id="pts_${p}" value="${state.points[p]}">
+        </div>`).join('')}
+      <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="savePoints()">Save points</button>
+      <div class="help-text">On Fridays, Juma automatically replaces Dhuhr on the Today tab. Changing a value recalculates the leaderboard using the new points for all recorded days.</div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Security</h3>
+      <div class="help-text" style="margin-bottom:6px;">${isOwner ? 'You and the imam each have your own 6-digit PIN. Either one unlocks editing.' : 'Set your own 6-digit PIN below.'}</div>
+      ${ownerPinBlock}
+      ${imamPinBlock}
+      <button class="btn btn-danger btn-full" style="margin-top:14px" onclick="lockNow()">Lock app now</button>
+    </div>
+
+    <div class="settings-section">
+      <h3>Sharing this app</h3>
+      <div class="help-text">
+        Send anyone this page's link — no account or sign-in needed for viewing or checking the leaderboard. On a phone, open it in the browser, tap Share, then "Add to Home Screen" so it behaves like a regular app icon.
+        <br><br>
+        All data (kids, points, attendance, and both PINs) lives in the connected Google Sheet and is shared automatically between everyone who opens this link.${isOwner ? ' Give the imam his own PIN rather than yours.' : ''}
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Manage kids</h3>
+      <div class="help-text" style="margin-bottom:10px;">To add a kid, use the "+ Add" button on the Today tab. You can remove kids here.</div>
+      <div id="kidManageList">
+        ${state.kids.map(k => `
+          <div class="kid-manage-row">
+            <span class="kid-name">${escapeHtml(k.name)}</span>
+            <button class="btn btn-danger" onclick="removeKid('${k.id}')">Remove</button>
+          </div>`).join('') || '<div class="help-text">No kids added yet.</div>'}
+      </div>
+    </div>
+  `;
+}
+
+function toStartCase(name){
+  return name
+    .trim()
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .map(word => word.split('-').map(part =>
+        part ? part.charAt(0).toUpperCase() + part.slice(1).toLowerCase() : part
+      ).join('-'))
+    .join(' ');
+}
+
+function isDuplicateName(name){
+  const norm = name.trim().toLowerCase();
+  return state.kids.some(k => k.name.trim().toLowerCase() === norm);
+}
+
+function openAddKidModal(){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.innerHTML = `
+    <div class="modal">
+      <h3>Add a kid</h3>
+      <p>Enter the name to start tracking their attendance.</p>
+      <div class="modal-error" id="addKidError"></div>
+      <input class="text-input" id="addKidInput" placeholder="Kid's name" autofocus>
+      <div class="modal-actions">
+        <button class="btn btn-danger" onclick="this.closest('.modal-backdrop').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddKid()">Add</button>
+      </div>
+    </div>`;
+  document.body.appendChild(backdrop);
+  const input = $('addKidInput');
+  input.focus();
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') submitAddKid(); });
+
+  window.submitAddKid = function(){
+    const raw = $('addKidInput').value.trim();
+    if(!raw){
+      $('addKidError').textContent = 'Enter a name first.';
+      return;
+    }
+    const name = toStartCase(raw);
+    if(isDuplicateName(name)){
+      $('addKidError').textContent = 'A kid with this name is already on the list.';
+      return;
+    }
+    backdrop.remove();
+    addKid(name);
+  };
+}
+
+async function addKid(name){
+  state.kids.push({ id: uid(), name });
+  render();
+  showToast(name + ' added');
+  await saveWithRetry('kids-list', JSON.stringify(state.kids), 'kids list');
+  state.leaderboardTotals = null;
+}
+
+function openConfirmModal(title, message, confirmLabel, onConfirm){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.innerHTML = `
+    <div class="modal">
+      <h3>${title}</h3>
+      <p>${message}</p>
+      <div class="modal-actions">
+        <button class="btn btn-danger" onclick="this.closest('.modal-backdrop').remove()">Cancel</button>
+        <button class="btn btn-primary" id="confirmModalBtn">${confirmLabel}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(backdrop);
+  $('confirmModalBtn').onclick = function(){
+    backdrop.remove();
+    onConfirm();
+  };
+}
+
+async function removeKid(id){
+  const kid = state.kids.find(k => k.id === id);
+  openConfirmModal(
+    'Remove kid?',
+    `Remove ${escapeHtml(kid ? kid.name : 'this kid')} from tracking? Their past attendance records stay stored but won't be shown.`,
+    'Remove',
+    async ()=>{
+      state.kids = state.kids.filter(k => k.id !== id);
+      renderSettings();
+      await saveWithRetry('kids-list', JSON.stringify(state.kids), 'kids list');
+      state.leaderboardTotals = null;
+    }
+  );
+}
+
+async function savePoints(){
+  const newPoints = {};
+  for(const p of ALL_PRAYERS){
+    const v = parseFloat($('pts_' + p).value);
+    newPoints[p] = isNaN(v) ? 0 : v;
+  }
+  state.points = newPoints;
+  await saveWithRetry('points-config', JSON.stringify(state.points), 'points');
+  state.leaderboardTotals = null;
+  showToast('Points saved');
+  renderToday();
+}
+
+async function changePin(role){
+  const p1 = $(role === 'owner' ? 'ownerPin1' : 'imamPin1').value.trim();
+  const p2 = $(role === 'owner' ? 'ownerPin2' : 'imamPin2').value.trim();
+  if(!/^\d{6}$/.test(p1)){ showToast('PIN must be exactly 6 digits'); return; }
+  if(p1 !== p2){ showToast("PINs don't match"); return; }
+  const otherRole = role === 'owner' ? 'imam' : 'owner';
+  if(p1 === state.pins[otherRole]){ showToast('Pick a PIN different from the other one'); return; }
+  state.pins[role] = p1;
+  await saveWithRetry('pin-' + role, p1, 'PIN');
+  showToast((role === 'owner' ? 'Your' : "Imam's") + ' PIN updated');
+  renderSettings();
+}
+
+function lockNow(){
+  state.unlocked = false;
+  state.unlockedRole = null;
+  renderLockPill();
+  render();
+  showToast('App locked');
+}
+
+/* ============================= INIT ============================= */
+loadAll();
+</script>
+</body>
+</html>
