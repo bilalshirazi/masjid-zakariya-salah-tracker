@@ -374,7 +374,8 @@ async function sGet(key){
   try{
     const res = await fetch(APPS_SCRIPT_URL + '?action=get&key=' + encodeURIComponent(key));
     const data = await res.json();
-    return (data && data.value !== undefined && data.value !== null && data.value !== '') ? data.value : null;
+    if(!data || data.value === undefined || data.value === null || data.value === '') return null;
+    return String(data.value); // Sheets can return numbers for pure-digit cells (e.g. PINs) — always normalize to string
   }catch(e){ return null; }
 }
 async function sSet(key, value){
