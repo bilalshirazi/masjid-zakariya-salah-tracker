@@ -308,7 +308,7 @@ const PRAYER_ORDER = ['fajr','dhur','asr','maghreb','isha'];
 const PRAYER_POINT_ORDER = ['fajr','dhur','juma','asr','maghreb','isha']; // shown under "Points per prayer" in Settings
 const EXTRA_POINT_ORDER = ['session'];                                    // shown under "Extras" in Settings
 const ALL_POINT_KEYS = [...PRAYER_POINT_ORDER, ...EXTRA_POINT_ORDER];      // used for saving points & leaderboard totals
-const PRAYER_LABEL = {fajr:'Fajr', dhur:'Dhuhr', juma:'Juma', asr:'Asr', maghreb:'Maghrib', isha:'Isha', session:'Session'};
+const PRAYER_LABEL = {fajr:'Fajr', dhur:'Dhuhr', juma:'Juma', asr:'Asr', maghreb:'Maghrib', isha:'Isha', session:'Sunday Session'};
 
 function isFriday(dateStr){
   const [y,m,d] = dateStr.split('-').map(Number);
@@ -320,7 +320,7 @@ function isSunday(dateStr){
 }
 
 // The set of attendance tabs to show for a given date — Juma replaces Dhuhr on Fridays,
-// and Session is inserted between Maghrib and Isha on Sundays.
+// and Sunday Session is inserted between Maghrib and Isha on Sundays.
 function getPrayersForDate(dateStr){
   let list = isFriday(dateStr)
     ? ['fajr','juma','asr','maghreb','isha']
@@ -829,7 +829,7 @@ function renderSettings(){
           <input type="number" min="0" id="pts_${p}" value="${state.points[p]}">
         </div>`).join('')}
       <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="savePoints()">Save points</button>
-      <div class="help-text">Session only appears on Sundays, between Maghrib and Isha, and scores just like a prayer. Changing any value above recalculates the leaderboard using the new points for all recorded days.</div>
+      <div class="help-text">Sunday Session only appears on Sundays, between Maghrib and Isha, and scores just like a prayer. Changing any value above recalculates the leaderboard using the new points for all recorded days.</div>
     </div>
 
     <div class="settings-section">
