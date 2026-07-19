@@ -288,7 +288,7 @@ body.nav-hidden .bottom-nav{ display:none; }
 /* ============================= STATE ============================= */
 const state = {
   kids: [],              // [{id, name}]
-  points: {fajr:3, dhur:1, juma:3, asr:1, maghreb:2, isha:2},
+  points: {fajr:3, dhur:1, juma:3, asr:1, maghreb:2, isha:2, session:2},
   pins: { owner: null, imam: null },  // loaded lazily, 6-digit codes
   unlocked: false,
   unlockedRole: null,    // 'owner' | 'imam'
@@ -305,19 +305,32 @@ const DEFAULT_OWNER_PIN = '123456';
 const DEFAULT_IMAM_PIN = '654321';
 
 const PRAYER_ORDER = ['fajr','dhur','asr','maghreb','isha'];
-const ALL_PRAYERS = ['fajr','dhur','juma','asr','maghreb','isha'];
-const PRAYER_LABEL = {fajr:'Fajr', dhur:'Dhuhr', juma:'Juma', asr:'Asr', maghreb:'Maghrib', isha:'Isha'};
+const PRAYER_POINT_ORDER = ['fajr','dhur','juma','asr','maghreb','isha']; // shown under "Points per prayer" in Settings
+const EXTRA_POINT_ORDER = ['session'];                                    // shown under "Extras" in Settings
+const ALL_POINT_KEYS = [...PRAYER_POINT_ORDER, ...EXTRA_POINT_ORDER];      // used for saving points & leaderboard totals
+const PRAYER_LABEL = {fajr:'Fajr', dhur:'Dhuhr', juma:'Juma', asr:'Asr', maghreb:'Maghrib', isha:'Isha', session:'Session'};
 
 function isFriday(dateStr){
   const [y,m,d] = dateStr.split('-').map(Number);
   return new Date(y, m-1, d).getDay() === 5;
 }
+function isSunday(dateStr){
+  const [y,m,d] = dateStr.split('-').map(Number);
+  return new Date(y, m-1, d).getDay() === 0;
+}
 
-// The set of prayer tabs to show for a given date — Juma replaces Dhuhr on Fridays.
+// The set of attendance tabs to show for a given date — Juma replaces Dhuhr on Fridays,
+// and Session is inserted between Maghrib and Isha on Sundays.
 function getPrayersForDate(dateStr){
-  return isFriday(dateStr)
+  let list = isFriday(dateStr)
     ? ['fajr','juma','asr','maghreb','isha']
-    : PRAYER_ORDER;
+    : [...PRAYER_ORDER];
+
+  if(isSunday(dateStr)){
+    const idx = list.indexOf('isha');
+    list.splice(idx, 0, 'session');
+  }
+  return list;
 }
 
 /* ============================= UTIL ============================= */
@@ -465,16 +478,19 @@ function renderSetupNeeded(){
 async function loadAttendanceFor(dateStr){
   if(state.loadedDates.has(dateStr)) return;
   const raw = await sGet('attendance:' + dateStr);
-  state.attendance[dateStr] = raw ? JSON.parse(raw) : {fajr:[],dhur:[],juma:[],asr:[],maghreb:[],isha:[]};
+  state.attendance[dateStr] = raw ? JSON.parse(raw) : {fajr:[],dhur:[],juma:[],asr:[],maghreb:[],isha:[],session:[]};
   state.loadedDates.add(dateStr);
 }
 
 function getDayData(dateStr){
   if(!state.attendance[dateStr]){
-    state.attendance[dateStr] = {fajr:[],dhur:[],juma:[],asr:[],maghreb:[],isha:[]};
+    state.attendance[dateStr] = {fajr:[],dhur:[],juma:[],asr:[],maghreb:[],isha:[],session:[]};
   }
   if(!state.attendance[dateStr].juma){
     state.attendance[dateStr].juma = [];
+  }
+  if(!state.attendance[dateStr].session){
+    state.attendance[dateStr].session = [];
   }
   return state.attendance[dateStr];
 }
@@ -749,7 +765,7 @@ async function computeLeaderboard(){
     const raw = await sGet(key);
     if(!raw) continue;
     const day = JSON.parse(raw);
-    for(const prayer of ALL_PRAYERS){
+    for(const prayer of ALL_POINT_KEYS){
       const list = day[prayer] || [];
       const pts = state.points[prayer] || 0;
       for(const kidId of list){
@@ -797,13 +813,23 @@ function renderSettings(){
   c.innerHTML = `
     <div class="settings-section">
       <h3>Points per prayer</h3>
-      ${ALL_PRAYERS.map(p => `
+      ${PRAYER_POINT_ORDER.map(p => `
+        <div class="field-row">
+          <label>${PRAYER_LABEL[p]}</label>
+          <input type="number" min="0" id="pts_${p}" value="${state.points[p]}">
+        </div>`).join('')}
+      <div class="help-text">On Fridays, Juma automatically replaces Dhuhr on the Today tab.</div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Extras</h3>
+      ${EXTRA_POINT_ORDER.map(p => `
         <div class="field-row">
           <label>${PRAYER_LABEL[p]}</label>
           <input type="number" min="0" id="pts_${p}" value="${state.points[p]}">
         </div>`).join('')}
       <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="savePoints()">Save points</button>
-      <div class="help-text">On Fridays, Juma automatically replaces Dhuhr on the Today tab. Changing a value recalculates the leaderboard using the new points for all recorded days.</div>
+      <div class="help-text">Session only appears on Sundays, between Maghrib and Isha, and scores just like a prayer. Changing any value above recalculates the leaderboard using the new points for all recorded days.</div>
     </div>
 
     <div class="settings-section">
@@ -932,7 +958,7 @@ async function removeKid(id){
 
 async function savePoints(){
   const newPoints = {};
-  for(const p of ALL_PRAYERS){
+  for(const p of ALL_POINT_KEYS){
     const v = parseFloat($('pts_' + p).value);
     newPoints[p] = isNaN(v) ? 0 : v;
   }
